@@ -19,4 +19,4 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 add_subdirectory(src)   # static/shared library with core logic
 add_subdirectory(app)   # CLI executable
-add_subdirectory(test) # unit tests
+add_subdirectory(tests) # unit tests
