@@ -13,14 +13,13 @@ void InvertedIndex::UpdateDocumentBase(const std::vector<std::string>& texts) {
     freq_dictionary_.clear();
     
     std::vector<std::thread> threads;
-    std::mutex mutex;
-    
+
     std::unordered_map<std::string, std::unordered_map<size_t, size_t>> tmp;
     std::mutex tmp_mutex;
-
     for (size_t doc_id = 0; doc_id < documents_.size(); ++doc_id) {
+
         threads.emplace_back([this, doc_id, &tmp, &tmp_mutex]() {
-            this->ProcessDocument(doc_id, tmp, tmp_mutex);
+            this->ProcessDocument(doc_id, std::ref(tmp), std::ref(tmp_mutex));
         });
     }
 
@@ -47,14 +46,9 @@ void InvertedIndex::ProcessDocument(size_t doc_id,
                                   std::mutex& tmp_mutex) {
     const auto tokens = ConverterJSON::TokenizeAsciiWords(documents_[doc_id]);
 
-    std::unordered_map<std::string, size_t> local_counts;
-    for (const auto& word : tokens) {
-        local_counts[word]++;
-    }
-
     std::lock_guard<std::mutex> lock(tmp_mutex);
-    for (const auto& [word, count] : local_counts) {
-        tmp[word][doc_id] = count;
+    for (const auto& word : tokens) {
+        tmp[word][doc_id]++;
     }
 }
 
